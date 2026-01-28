@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Konfirmationsplan for Tea - 16. maj 2026</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero__content">
+        <p class="hero__eyebrow">Konfirmation</p>
+        <h1>Plan for Tea · 16. maj 2026</h1>
+        <p class="hero__subtext">
+          Hold styr på alle opgaver til konfirmationen. Tilføj egne punkter, sæt
+          deadlines og marker dem som færdige.
+        </p>
+      </div>
+      <div class="hero__card">
+        <div>
+          <p class="label">Dato</p>
+          <p class="value">16. maj 2026</p>
+        </div>
+        <div>
+          <p class="label">Nedtælling</p>
+          <p class="value" id="countdown">Indlæser ...</p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="overview">
+        <div class="overview__card">
+          <h2>Overblik</h2>
+          <ul>
+            <li>Faste opgaver er allerede udfyldt.</li>
+            <li>Tilføj egne punkter, når noget nyt opstår.</li>
+            <li>Alt gemmes lokalt i browseren.</li>
+          </ul>
+        </div>
+        <div class="overview__card">
+          <h2>Status</h2>
+          <div class="status">
+            <div>
+              <p class="label">I alt</p>
+              <p class="value" id="total-count">0</p>
+            </div>
+            <div>
+              <p class="label">Færdige</p>
+              <p class="value" id="done-count">0</p>
+            </div>
+            <div>
+              <p class="label">Tilbage</p>
+              <p class="value" id="remaining-count">0</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="task-section">
+        <header>
+          <h2>Opgaver</h2>
+          <p>Tilføj alt hvad der skal huskes, f.eks. budget, indbydelser, pynt.</p>
+        </header>
+
+        <form id="task-form" class="task-form">
+          <div class="field">
+            <label for="title">Opgave</label>
+            <input id="title" name="title" type="text" placeholder="Fx bestil blomster" required />
+          </div>
+          <div class="field">
+            <label for="category">Kategori</label>
+            <input id="category" name="category" type="text" placeholder="Fx Kirke, Fest, Mad" />
+          </div>
+          <div class="field">
+            <label for="due">Deadline</label>
+            <input id="due" name="due" type="date" />
+          </div>
+          <div class="field field--full">
+            <label for="notes">Noter</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Skriv detaljer her"></textarea>
+          </div>
+          <button type="submit" class="button">Tilføj punkt</button>
+        </form>
+
+        <div class="filters">
+          <button class="filter-button is-active" data-filter="all">Alle</button>
+          <button class="filter-button" data-filter="open">Åbne</button>
+          <button class="filter-button" data-filter="done">Færdige</button>
+        </div>
+
+        <div id="task-list" class="task-list" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Lav en backup af listen ved at eksportere den som JSON.</p>
+      <div class="footer-actions">
+        <button id="export" class="button button--ghost">Eksporter</button>
+        <label for="import" class="button button--ghost">Importer</label>
+        <input id="import" type="file" accept="application/json" hidden />
+        <button id="reset" class="button button--danger">Nulstil alt</button>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
