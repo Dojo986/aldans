@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="da" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tilstedeværelsesmonitor</title>
+<style>
+:root {
+  --bg:        #0f1117;
+  --bg2:       #1a1d27;
+  --bg3:       #22263a;
+  --border:    #2e3347;
+  --text:      #e8eaf2;
+  --text2:     #6b7494;
+  --blue:      #4f8ef7;
+  --green:     #34d97b;
+  --orange:    #f5a623;
+  --purple:    #a78bfa;
+  --total-bg1: #1e2a4a;
+  --total-bg2: #1a2538;
+  --total-bdr: #2d4080;
+}
+[data-theme="light"] {
+  --bg:        #f0f2f8;
+  --bg2:       #ffffff;
+  --bg3:       #e8eaf2;
+  --border:    #c8cce0;
+  --text:      #1a1d27;
+  --text2:     #6b7494;
+  --blue:      #2563eb;
+  --green:     #16a34a;
+  --orange:    #d97706;
+  --purple:    #7c3aed;
+  --total-bg1: #dbeafe;
+  --total-bg2: #eff6ff;
+  --total-bdr: #93c5fd;
+}
+*{box-sizing:border-box;transition:background-color .2s,color .2s,border-color .2s;}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;display:flex;flex-direction:column;min-height:100vh;}
+
+header{padding:14px 24px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
+.logo{font-weight:700;font-size:1.1rem;}.logo span{color:var(--blue);}
+.clock{font-size:.8rem;color:var(--text2);}
+.hdr-btns{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 13px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap;}
+.btn:hover{filter:brightness(1.15);}
+.btn-purple{border-color:var(--purple);color:var(--purple);}
+.btn-orange{border-color:var(--orange);color:var(--orange);}
+.btn-green{border-color:var(--green);color:var(--green);}
+.btn-icon{padding:7px 10px;font-size:1rem;}
+
+body.fullscreen header .hdr-btns > *:not(.btn-fs){display:none;}
+body.fullscreen footer{display:none;}
+body.fullscreen main{padding:14px;}
+
+main{flex:1;padding:22px 24px;display:flex;flex-direction:column;gap:16px;}
+.err{background:#2a1515;border:1px solid #5c2020;border-radius:10px;padding:14px;font-size:.83rem;color:#f0a0a0;display:none;}
+.err.show{display:block;}
+
+.total{background:linear-gradient(135deg,var(--total-bg1),var(--total-bg2));border:1px solid var(--total-bdr);border-radius:12px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.total-num{font-size:2.6rem;font-weight:700;color:var(--blue);line-height:1;}
+.total-lbl{font-size:.78rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.total-sub{font-size:.73rem;color:var(--text2);margin-top:4px;}
+.stats{display:flex;gap:22px;flex-wrap:wrap;}
+.stat .val{font-size:1.3rem;font-weight:700;color:var(--green);}
+.stat .lbl{font-size:.7rem;color:var(--text2);}
+.stat-vpn{cursor:pointer;}
+.stat-vpn .val{font-size:1.3rem;font-weight:700;color:var(--orange);}
+.stat-vpn .lbl{font-size:.7rem;color:var(--text2);text-decoration:underline dotted;}
+.stat-vpn:hover .lbl{color:var(--orange);}
+
+.panel{background:var(--bg2);border-radius:12px;padding:18px 22px;display:none;}
+.panel.show{display:block;}
+.panel-blue{border:1px solid var(--blue);}
+.panel-orange{border:1px solid var(--orange);}
+.panel-purple{border:1px solid var(--purple);}
+.panel-green{border:1px solid var(--green);}
+.panel-title{font-size:.85rem;font-weight:700;margin-bottom:12px;}
+.close-btn{float:right;background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;margin-top:-4px;}
+.close-btn:hover{color:var(--text);}
+.user-list{display:flex;flex-wrap:wrap;gap:8px;}
+.user-chip{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.8rem;color:var(--text);}
+.no-data{color:var(--text2);font-size:.83rem;padding:6px 0;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:13px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:border-color .2s;}
+.card:hover{border-color:var(--blue);}
+.card.active{border-color:var(--blue);background:var(--bg3);}
+.dept{font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;}
+.count{font-size:2rem;font-weight:700;line-height:1;}
+.bar-wrap{height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.bar{height:100%;border-radius:99px;transition:width .8s ease;}
+.foot{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;color:var(--text2);}
+.dot{width:7px;height:7px;border-radius:50%;}
+.dg{background:#34d97b;}.da{background:#f5a623;}.dm{background:#6b7494;}
+.hint{font-size:.68rem;color:var(--blue);margin-top:2px;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
+.stat-card .period{font-size:.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.stat-card .avg{font-size:2.2rem;font-weight:700;color:var(--purple);line-height:1;}
+.stat-card .sub{font-size:.7rem;color:var(--text2);margin-top:6px;}
+.stat-card .peak{font-size:.72rem;color:var(--green);margin-top:4px;}
+.stat-note{font-size:.72rem;color:var(--text2);margin-top:8px;}
+
+.weekday-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.wd-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.wd-name{font-size:.72rem;color:var(--text2);text-transform:uppercase;margin-bottom:6px;}
+.wd-avg{font-size:1.6rem;font-weight:700;color:var(--green);line-height:1;}
+.wd-sub{font-size:.68rem;color:var(--text2);margin-top:4px;}
+.wd-card.today{border-color:var(--blue);background:var(--bg2);}
+.wd-card.today .wd-avg{color:var(--blue);}
+
+.qr-wrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.qr-wrap img{border-radius:8px;border:3px solid var(--bg3);}
+.qr-info{font-size:.83rem;color:var(--text2);line-height:1.7;}
+.qr-url{font-size:.9rem;font-weight:700;color:var(--blue);word-break:break-all;}
+
+footer{padding:13px 24px;border-top:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mail-in{flex:1;min-width:190px;max-width:300px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:.83rem;color:var(--text);outline:none;}
+.send{background:var(--blue);border:none;color:#fff;padding:7px 18px;border-radius:8px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.confirm{font-size:.72rem;color:var(--green);opacity:0;transition:opacity .4s;}
+.confirm.show{opacity:1;}
+@media(max-width:600px){
+  .grid{grid-template-columns:repeat(2,1fr);}
+  .stat-grid{grid-template-columns:1fr;}
+  .weekday-grid{grid-template-columns:repeat(3,1fr);}
+  footer{flex-direction:column;align-items:stretch;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Tilstedeværelse<span>Monitor</span></div>
+  <div class="hdr-btns">
+    <div><div class="clock" id="clock"></div><div class="clock" id="age" style="margin-top:2px">Henter...</div></div>
+    <button class="btn btn-green" onclick="toggleSnorre()">📍 Snorresgade</button>
+    <button class="btn btn-purple" onclick="toggleStats()">✎ Statistik</button>
+    <button class="btn btn-orange" onclick="toggleQR()">▦ QR-kode</button>
+    <button class="btn btn-icon" onclick="toggleTheme()" title="Skift tema" id="themeBtn">☀</button>
+    <button class="btn btn-icon btn-fs" onclick="toggleFullscreen()" title="Fuldskærm" id="fsBtn">⛶</button>
+    <button class="btn" onclick="load()">↻ Opdater</button>
+  </div>
+</header>
+<main>
+  <div class="err" id="err"></div>
+
+  <div class="total">
+    <div>
+      <div class="total-lbl">I huset nu</div>
+      <div class="total-num" id="tot">-</div>
+      <div class="total-sub">Inhouse PC-sessioner — ekskl. VPN/hjemme</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="val" id="sPC">-</div><div class="lbl">PC-logins</div></div>
+      <div class="stat"><div class="val" id="sCitrix">-</div><div class="lbl">Citrix inhouse</div></div>
+      <div class="stat"><div class="val" id="sSnorre">-</div><div class="lbl">Snorresgade login</div></div>
+      <div class="stat-vpn" onclick="toggleVPN()" title="Klik for at se VPN-brugere">
+        <div class="val" id="sExcl">-</div>
+        <div class="lbl">Ekskl. VPN ▼</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-green" id="snorrePanel">
+    <button class="close-btn" onclick="toggleSnorre()">✕</button>
+    <div class="panel-title" style="color:var(--green)" id="snorreTitle">Brugere logget på fra Snorresgade</div>
+    <div class="user-list" id="snorreUsers"></div>
+  </div>
+
+  <div class="panel panel-purple" id="statPanel">
+    <button class="close-btn" onclick="toggleStats()">✕</button>
+    <div class="panel-title" style="color:var(--purple)">✎ Historisk gennemsnit — Snorresgade</div>
+    <div id="statContent"><div class="no-data">Henter historik...</div></div>
+  </div>
+
+  <div class="panel panel-green" id="wdPanel">
+    <button class="close-btn" onclick="toggleWD()">✕</button>
+    <div class="panel-title" style="color:var(--green)">☃ Ugedag-mønster — typisk fremmøde</div>
+    <div id="wdContent"><div class="no-data">Henter historik...</div></div>
+  </div>
+
+  <div class="panel panel-orange" id="qrPanel">
+    <button class="close-btn" onclick="toggleQR()">✕</button>
+    <div class="panel-title" style="color:var(--orange)">▦ QR-kode til siden</div>
+    <div class="qr-wrap">
+      <img id="qrImg" src="" width="160" height="160" alt="QR-kode"/>
+      <div class="qr-info">
+        Scan for at åbne siden på telefon eller tablet.<br><br>
+        <span class="qr-url" id="qrUrl"></span><br><br>
+        Tilføj til hjemmeskærm i Safari for genvej på iPad.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-orange" id="vpnPanel">
+    <button class="close-btn" onclick="toggleVPN()">✕</button>
+    <div class="panel-title" style="color:var(--orange)" id="vpnTitle">Brugere på VPN/hjemme</div>
+    <div class="user-list" id="vpnUsers"></div>
+  </div>
+
+  <div class="panel panel-blue" id="userPanel">
+    <button class="close-btn" onclick="closePanel()">✕</button>
+    <div class="panel-title" id="panelTitle" style="color:var(--blue)"></div>
+    <div class="user-list" id="panelUsers"></div>
+  </div>
+
+  <div class="grid" id="grid"><div style="color:var(--text2);grid-column:1/-1;padding:16px 0">Indlæser...</div></div>
+</main>
+<footer>
+  <span style="font-size:.8rem;color:var(--text2)">Send rapport til:</span>
+  <input class="mail-in" type="email" id="mail" placeholder="kantine@virksomhed.dk"/>
+  <button class="send" onclick="send()">✉ Send rapport</button>
+  <span class="confirm" id="conf">✓ Åbnet i mail-app</span>
+</footer>
+<script>
+var DATA_URL = "./presence.json", HISTORY_URL = "./history.json";
+var last = null, activeCard = null;
+var statsOpen=false, wdOpen=false, vpnOpen=false, qrOpen=false, snorreOpen=false;
+var DAYS = ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"];
+
+var theme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', theme);
+document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀' : '☾';
+
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀' : '☾';
+}
+
+function toggleFullscreen() {
+  document.body.classList.toggle('fullscreen');
+  document.getElementById('fsBtn').textContent = document.body.classList.contains('fullscreen') ? '⊠' : '⛶';
+}
+
+function tick() {
+  var n = new Date();
+  document.getElementById("clock").textContent =
+    n.toLocaleDateString("da-DK",{weekday:"long",day:"numeric",month:"long"}) +
+    " - " + n.toLocaleTimeString("da-DK",{hour:"2-digit",minute:"2-digit"});
+}
+setInterval(tick,1000); tick();
+
+function getSnorresgadeUsers(d){
+  if (Array.isArray(d.snorresgadeUsers)) return d.snorresgadeUsers;
+  var snorreDepartment = (d.departments || []).find(function(dep){
+    return typeof dep.name === 'string' && dep.name.toLowerCase().includes('snorresgade');
+  });
+  return snorreDepartment && Array.isArray(snorreDepartment.users) ? snorreDepartment.users : [];
+}
+
+function load() {
+  document.getElementById("err").classList.remove("show");
+  fetch(DATA_URL+"?t="+Date.now())
+    .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+    .then(function(d){
+      last=d;
+      var snorreUsers = getSnorresgadeUsers(d);
+      document.getElementById("tot").textContent=d.total||0;
+      document.getElementById("sPC").textContent=d.stats&&d.stats.pc||0;
+      document.getElementById("sCitrix").textContent=d.stats&&d.stats.citrix||0;
+      document.getElementById("sExcl").textContent=d.stats&&d.stats.excluded||0;
+      document.getElementById("sSnorre").textContent=snorreUsers.length;
+      if(vpnOpen)renderVPN(d);
+      if(snorreOpen)renderSnorresgade(d);
+      var depts=d.departments||[],max=1;
+      depts.forEach(function(x){if(x.present>max)max=x.present;});
+      var g=document.getElementById("grid");g.innerHTML="";
+      if(!depts.length){g.innerHTML="<div style='color:var(--text2);grid-column:1/-1;padding:16px 0'>Ingen afdelingsdata endnu.</div>";return;}
+      depts.forEach(function(dep){
+        var pct=dep.capacity>0?Math.round(dep.present/dep.capacity*100):0;
+        var w=Math.round(dep.present/max*100);
+        var dot=dep.present===0?"dm":pct>=70?"da":"dg";
+        var c=document.createElement("div");
+        c.className="card";c.setAttribute("data-dept",dep.name);
+        c.innerHTML="<div class='dept'>"+dep.name+"</div>"+
+          "<div class='count' style='color:"+dep.color+"'>"+dep.present+"</div>"+
+          "<div class='bar-wrap'><div class='bar' style='width:0%;background:"+dep.color+"' data-w='"+w+"'></div></div>"+
+          "<div class='foot'><span>"+pct+"% af "+dep.capacity+"</span><span class='dot "+dot+"'></span></div>"+
+          (dep.users&&dep.users.length?"<div class='hint'>Klik for at se navne</div>":"");
+        c.addEventListener("click",function(){showUsers(dep,c);});
+        g.appendChild(c);
+      });
+      requestAnimationFrame(function(){
+        document.querySelectorAll(".bar").forEach(function(b){b.style.width=b.getAttribute("data-w")+"%";});
+      });
+      var age=Math.round((Date.now()-new Date(d.timestamp))/1000);
+      document.getElementById("age").textContent=age<90?"Opdateret < 1 min siden":"Opdateret "+Math.round(age/60)+" min siden";
+      if(activeCard){var ad=depts.find(function(x){return x.name===activeCard;});if(ad)showUsers(ad,document.querySelector(".card.active"));}
+    })
+    .catch(function(e){var el=document.getElementById("err");el.textContent="Kan ikke hente data: "+e.message;el.classList.add("show");});
+}
+
+function toggleStats(){
+  statsOpen=!statsOpen;
+  var p=document.getElementById("statPanel");
+  if(statsOpen){p.classList.add("show");loadStats();p.scrollIntoView({behavior:"smooth",block:"nearest"});}
+  else p.classList.remove("show");
+}
+function loadStats(){
+  var c=document.getElementById("statContent");
+  c.innerHTML="<div class='no-data'>Henter...</div>";
+  fetch(HISTORY_URL+"?t="+Date.now())
+    .then(function(r){if(!r.ok)throw new Error();return r.json();})
+    .then(function(data){
+      if(!data||!data.length){c.innerHTML="<div class='no-data'>Ingen historik endnu — data samles op over tid.</div>";return;}
+      var now=new Date();
+      var periods=[{label:"7 dage",days:7},{label:"14 dage",days:14},{label:"30 dage",days:30}];
+      var html="<div class='stat-grid'>";
+      periods.forEach(function(p){
+        var cut=new Date(now.getTime()-p.days*86400000);
+        var ent=data.filter(function(e){return new Date(e.timestamp)>=cut&&e.total>0;});
+        if(!ent.length){html+="<div class='stat-card'><div class='period'>"+p.label+"</div><div class='avg' style='font-size:1.2rem;color:var(--text2)'>Ingen data</div></div>";return;}
+        var avg=Math.round(ent.reduce(function(a,b){return a+b.total;},0)/ent.length);
+        var peak=Math.max.apply(null,ent.map(function(e){return e.total;}));
+        var pe=ent.find(function(e){return e.total===peak;});
+        var pd=pe?new Date(pe.timestamp).toLocaleDateString("da-DK",{day:"numeric",month:"short"}):"";
+        html+="<div class='stat-card'><div class='period'>"+p.label+"</div><div class='avg'>"+avg+"</div><div class='sub'>snit pr. måling ("+ent.length+" målinger)</div><div class='peak'>↟ Maks: "+peak+" ("+pd+")</div></div>";
+      });
+      html+="</div><div class='stat-note'>Kun arbejdstid man-fre 06-19 registreres.</div>";
+      html+="<div style='margin-top:14px'><button class='btn btn-purple' style='font-size:.8rem' onclick='toggleWD()'>☃ Vis ugedag-mønster</button></div>";
+      c.innerHTML=html;
+    })
+    .catch(function(){c.innerHTML="<div class='no-data'>Ingen historik endnu.</div>";});
+}
+
+function toggleWD(){
+  wdOpen=!wdOpen;
+  var p=document.getElementById("wdPanel");
+  if(wdOpen){p.classList.add("show");loadWD();p.scrollIntoView({behavior:"smooth",block:"nearest"});}
+  else p.classList.remove("show");
+}
+function loadWD(){
+  var c=document.getElementById("wdContent");
+  c.innerHTML="<div class='no-data'>Henter...</div>";
+  fetch(HISTORY_URL+"?t="+Date.now())
+    .then(function(r){if(!r.ok)throw new Error();return r.json();})
+    .then(function(data){
+      if(!data||!data.length){c.innerHTML="<div class='no-data'>Ingen historik endnu — data samles op over tid.</div>";return;}
+      var today=new Date().getDay();
+      var wdData={1:[],2:[],3:[],4:[],5:[]};
+      data.forEach(function(e){
+        var d=new Date(e.timestamp).getDay();
+        if(wdData[d]&&e.total>0)wdData[d].push(e.total);
+      });
+      var html="<div class='weekday-grid'>";
+      [1,2,3,4,5].forEach(function(d){
+        var vals=wdData[d];
+        var avg=vals.length?Math.round(vals.reduce(function(a,b){return a+b;},0)/vals.length):0;
+        var isToday=today===d;
+        html+="<div class='wd-card"+(isToday?" today":"")+"'>"+
+          "<div class='wd-name'>"+DAYS[d]+(isToday?" ★":"")+"</div>"+
+          "<div class='wd-avg'>"+(vals.length?avg:"–")+"</div>"+
+          "<div class='wd-sub'>"+(vals.length?"snit ("+vals.length+" dage)":"ingen data")+"</div>"+
+          "</div>";
+      });
+      html+="</div><div class='stat-note' style='margin-top:12px'>Baseret på alle registrerede målinger pr. ugedag.</div>";
+      c.innerHTML=html;
+    })
+    .catch(function(){c.innerHTML="<div class='no-data'>Ingen historik endnu.</div>";});
+}
+
+function toggleQR(){
+  qrOpen=!qrOpen;
+  var p=document.getElementById("qrPanel");
+  if(qrOpen){
+    p.classList.add("show");
+    var url=window.location.href.split("?")[0];
+    document.getElementById("qrUrl").textContent=url;
+    document.getElementById("qrImg").src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="+encodeURIComponent(url);
+    p.scrollIntoView({behavior:"smooth",block:"nearest"});
+  } else p.classList.remove("show");
+}
+
+function toggleVPN(){
+  vpnOpen=!vpnOpen;
+  var p=document.getElementById("vpnPanel");
+  if(vpnOpen){p.classList.add("show");if(last)renderVPN(last);p.scrollIntoView({behavior:"smooth",block:"nearest"});}
+  else p.classList.remove("show");
+}
+function renderVPN(d){
+  var users=d.vpnUsers||[];
+  document.getElementById("vpnTitle").textContent="Brugere på VPN/hjemme ("+users.length+")";
+  var list=document.getElementById("vpnUsers");list.innerHTML="";
+  if(!users.length){list.innerHTML="<span style='color:var(--text2);font-size:.8rem'>Ingen aktive VPN-brugere</span>";return;}
+  users.forEach(function(n){var c=document.createElement("div");c.className="user-chip";c.textContent=n;list.appendChild(c);});
+}
+
+function toggleSnorre(){
+  snorreOpen=!snorreOpen;
+  var p=document.getElementById("snorrePanel");
+  if(snorreOpen){p.classList.add("show");if(last)renderSnorresgade(last);p.scrollIntoView({behavior:"smooth",block:"nearest"});}
+  else p.classList.remove("show");
+}
+function renderSnorresgade(d){
+  var users=getSnorresgadeUsers(d);
+  document.getElementById("snorreTitle").textContent="Brugere logget på fra Snorresgade ("+users.length+")";
+  var list=document.getElementById("snorreUsers");list.innerHTML="";
+  if(!users.length){list.innerHTML="<span style='color:var(--text2);font-size:.8rem'>Ingen aktive brugere fra Snorresgade</span>";return;}
+  users.forEach(function(n){var c=document.createElement("div");c.className="user-chip";c.textContent=n;list.appendChild(c);});
+}
+
+function showUsers(dep,cardEl){
+  document.querySelectorAll(".card").forEach(function(c){c.classList.remove("active");});
+  if(activeCard===dep.name){closePanel();return;}
+  activeCard=dep.name;
+  if(cardEl)cardEl.classList.add("active");
+  var p=document.getElementById("userPanel");
+  document.getElementById("panelTitle").textContent=dep.name+" ("+dep.present+" til stede)";
+  var list=document.getElementById("panelUsers");list.innerHTML="";
+  var users=dep.users||[];
+  if(!users.length){list.innerHTML="<span style='color:var(--text2);font-size:.8rem'>Ingen navne tilgængelige</span>";}
+  else{users.forEach(function(n){var c=document.createElement("div");c.className="user-chip";c.textContent=n;list.appendChild(c);});}
+  p.classList.add("show");
+  p.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function closePanel(){
+  activeCard=null;
+  document.getElementById("userPanel").classList.remove("show");
+  document.querySelectorAll(".card").forEach(function(c){c.classList.remove("active");});
+}
+
+function send(){
+  var m=document.getElementById("mail").value.trim();
+  if(!m){alert("Indtast en mailadresse.");return;}
+  if(!last){alert("Ingen data endnu.");return;}
+  var n=new Date();
+  var ds=n.toLocaleDateString("da-DK",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  var ts=n.toLocaleTimeString("da-DK",{hour:"2-digit",minute:"2-digit"});
+  var snorreUsers = getSnorresgadeUsers(last);
+  var b="TILSTEDEVÆRELSESRAPPORT\n"+ds+" kl. "+ts+"\n---\n\nTOTAL I HUSET: "+last.total+"\n";
+  b+="\nSNORRESGADE ("+snorreUsers.length+"):\n";
+  snorreUsers.forEach(function(u){b+="  - "+u+"\n";});
+  if(last.vpnUsers&&last.vpnUsers.length){b+="\nPÅ VPN/HJEMME ("+last.vpnUsers.length+"):\n";last.vpnUsers.forEach(function(u){b+="  - "+u+"\n";});}
+  b+="\nAFDELINGER:\n";
+  (last.departments||[]).forEach(function(d){
+    b+="\n"+d.name+": "+d.present+" personer\n";
+    if(d.users&&d.users.length)d.users.forEach(function(u){b+="  - "+u+"\n";});
+  });
+  window.location.href="mailto:"+m+"?subject="+encodeURIComponent("Tilstedeværelse "+ds+" "+ts)+"&body="+encodeURIComponent(b);
+  var el=document.getElementById("conf");el.classList.add("show");
+  setTimeout(function(){el.classList.remove("show");},4000);
+}
+
+load();
+setInterval(load,60000);
+</script>
+</body>
+</html>

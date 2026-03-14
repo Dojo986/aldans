@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-03-14T08:45:00+01:00",
+  "total": 27,
+  "stats": {
+    "pc": 23,
+    "citrix": 4,
+    "excluded": 6
+  },
+  "snorresgadeUsers": [
+    "Amalie Sørensen",
+    "Jonas Mikkelsen",
+    "Maja Lund",
+    "Rasmus Aagaard",
+    "Freja Holm",
+    "Noah Winther"
+  ],
+  "vpnUsers": [
+    "Lasse Bjerre",
+    "Signe Foldager",
+    "Morten Krabbe",
+    "Nanna Thybo",
+    "Peter Sten",
+    "Maria Engberg"
+  ],
+  "departments": [
+    {
+      "name": "Snorresgade",
+      "present": 6,
+      "capacity": 10,
+      "color": "#34d97b",
+      "users": [
+        "Amalie Sørensen",
+        "Jonas Mikkelsen",
+        "Maja Lund",
+        "Rasmus Aagaard",
+        "Freja Holm",
+        "Noah Winther"
+      ]
+    },
+    {
+      "name": "Support",
+      "present": 8,
+      "capacity": 12,
+      "color": "#4f8ef7",
+      "users": [
+        "Kasper Dam",
+        "Trine Søgaard",
+        "Anders Funch",
+        "Mille Frandsen",
+        "Tobias Dahl",
+        "Ida Ravn",
+        "Luna Vester",
+        "Victor Sejr"
+      ]
+    },
+    {
+      "name": "Salg",
+      "present": 9,
+      "capacity": 14,
+      "color": "#a78bfa",
+      "users": [
+        "Emma Krogh",
+        "Mathias Knudsen",
+        "Sofia Møller",
+        "Filip Clausen",
+        "Oliver Hede",
+        "Nikolaj Veber",
+        "Clara Riis",
+        "Julie Bjørn",
+        "Louise Horn"
+      ]
+    },
+    {
+      "name": "Drift",
+      "present": 4,
+      "capacity": 8,
+      "color": "#f5a623",
+      "users": [
+        "Henrik Stage",
+        "Line Bjerg",
+        "Malte Juhl",
+        "Sara Friis"
+      ]
+    }
+  ]
+}
